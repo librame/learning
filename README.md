@@ -9,7 +9,7 @@
     // 序列化为 JSON 字符串形式
     var data = JSON.stringify(user);
     
-    // 发起提交异步请求【针对 Get 方法】
+    // 发起提交异步请求【针对 POST/PUT 方法】
     $.post("/api/Users", data, function(result){
         // 处理回传结果
     });
