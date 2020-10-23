@@ -1,0 +1,66 @@
+﻿<link rel="stylesheet" href="./assets/lib/dplayer/dist/DPlayer.min.css"/>   //视频播放器对应样式文件
+<script src="../assets/lib/dplayer/dist/DPlayer.min.js"></script>
+
+2、创建HTML
+<div id="dplayer"></div>
+
+3、初始化视频var dplayer = new DPlayer({
+    element: document.getElementById('dplayer'),
+    autoplay: false,
+    theme: '#FADFA3',
+    loop: false,
+    screenshot: true, //截屏
+    hotkey: false,
+    logo: '/public/assets/images/server/favicon.ico',
+    video: {  //视频源 包含不同分辨率源
+        quality: [{
+            name: '普清',
+            url: url1
+        },{
+            name: '高清',
+            url: url2
+        }, {
+            name: '超清',
+            url: url3
+        }],
+        defaultQuality: 0,
+        pic: '',
+        type: 'auto'
+    }
+});
+
+4、事件：
+　　play,  播放时触发
+　　pause,  暂停时触发
+　　canplay, 
+　　playing, 播放时触发
+　　ended, 视频播放结束时触发
+　　error  出错时触发
+
+5、事件监听：
+（1）通过on方法绑定事件
+　　dplayer.on(event, callback)
+   EG： dplayer.on('play',funcition(){
+　　　　console.log("start play video");
+　　})
+(2)通过dplayer.video.current对象设置
+ondurationchange　　onerror　　onload　　onloadeddata
+　　onloadedmetadata　　onloadstart　　onmousedown　　onmouseenter　　onmouseleave
+
+　　onmousemove　　onmouseout　　onmouseover　　onmouseup　　onmousewheel
+
+　　onpause　　onplay　　onplaying　　onpointercancel　　onpointerdown　　onpointerenter
+
+　　onpointerleave　　onpointermove　　onpointerout　　onpointerover　　onpointerup
+
+　　onprogress　　onratechange　　onreset　　onresize　　onseeked　　onseeking
+
+　　ontimeupdate　　onvolumechange　　onwaiting　　onwaitingforkey
+
+　　onwebkitfullscreenchange　　onwebkitfullscreenerror
+
+　　EG: dplayer.video.current.onplay = function(){
+　　　　console.log("start play video");
+　　}
+
+6、获取当前视频播放时间：  dplayer.video.current.currentTime

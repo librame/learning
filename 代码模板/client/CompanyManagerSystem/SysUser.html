@@ -1,0 +1,538 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <link href="Content/css/framework-font.css" rel="stylesheet" />
+    <link href="Content/css/framework-theme.css" rel="stylesheet" />
+    <script src="Content/js/jquery/jquery-2.1.1.min.js"></script>
+    <link href="Content/js/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <script src="Content/js/bootstrap/bootstrap.js"></script>
+    <link href="Content/js/bootstrap-table/bootstrap-table.css" rel="stylesheet" />
+    <script src="Content/js/bootstrap-table/bootstrap-table.js"></script>
+    <!--<script src="Content/js/bootstrap-table/bootstrap-treegrid.js"></script>-->
+    <script src="Content/js/bootstrap-table/bootstrap-table-zh-CN.js"></script>
+    <link href="Content/css/framework-ui.css" rel="stylesheet" />
+    <script src="Content/js/framework-ui.js"></script>
+    <link href="Content/js/select2/select2.min.css" rel="stylesheet" />
+    <script src="Content/js/select2/select2.min.js"></script>
+    <link href="Content/js/wizard/wizard.css" rel="stylesheet" />
+    <script src="Content/js/wizard/wizard.js"></script>
+    <script src="Content/js/validate/jquery.validate.min.js"></script>
+    <script src="Content/layer-v3.1.0/layer/layer.js"></script>
+    <script src="Content/js/base.js"></script>
+
+    <script type="text/javascript">
+
+        $(function () {
+
+            initTable();
+
+            $("#btnsaveuser").click(function () {
+
+
+                if ($("#addMark").val() == "add") {
+
+                    addUser();
+                }
+                else {
+
+                    editUser
+                }
+            });
+
+
+            $('#user-modal-table').on('hide.bs.modal', function () {
+                $("#account").val("");
+                $("#password").val("");
+                $("#userName").val("");
+                $("#gender").val("");
+                $("#isAdmin").val("");
+                $("#mobilePhone").val("");
+                $("#deptId").empty();
+                $("#jobId").empty();
+                $("#commpanyId").empty();
+                $("#isAllow").val("");
+                $("#remark").val("");
+            });
+
+            $("#commpanyId").change(function () {
+
+                $("#deptId").empty();
+                bindDept($("#commpanyId").val());
+            });
+
+            $("#deptId").change(function () {
+
+                $("#jobId").empty();
+                bindJob($("#deptId").val());
+            });
+
+
+        });
+
+        var pagedata = JSON.stringify({
+
+            "params": {
+                "id": 1
+            },
+
+            "row": 10,
+            "pageNo": 1
+        });
+
+        function initTable() {
+            //先销毁表格
+            $("#gridList").bootstrapTable('destroy');
+            $("#gridList").bootstrapTable({
+                url: baseUrl() + "userInfo/queryPage",
+                type: "post",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                striped: true,//表格显示条纹
+                pagination: true,//是否显示分页
+                pageSize: 1,
+                pageNumber: 1,
+                pageList: [1, 10, 15, 20, 25],
+                showColumns: false,
+                search: false, //搜索框
+                singleSelect: false,
+                searchOnEnterKey: true, //按回车触发搜索功能
+                searchAlign: "left", //搜索框的位置
+                buttonsAlign: "left", //按钮的位置
+                showRefresh: false,//是否显示刷新按钮
+                sidePagination: "server",//表示从服务端获取数据 --必须有
+                queryParamsType: "undefined",//定义参数类型
+                sortable: false, //是否启用排序
+                sortOrder: "asc", //排序方式
+                clickToSelect: true,
+                uniqueId: "id", //每一行的唯一表示，一般为主键
+                queryParams: function (params) {
+
+                    return pagedata;
+                },
+                onClickRow: function (row, $element) {
+                    $('.info').removeClass('info');
+                    $($element).addClass('info');
+                },
+                columns: [
+                {
+                    field: 'account',
+                    title: '账户',
+                    align: 'center',
+                },
+                {
+                    field: 'userName',
+                    title: '名字',
+                    align: 'center',
+                },
+                {
+                    field: 'gender',
+                    title: '性别',
+                    align: 'center',
+                },
+                {
+                    field: 'mobilePhone',
+                    title: '电话',
+                    align: 'center',
+                },
+                 //{
+                 //    field: 'commpany.fullName',
+                 //    title: '所属公司',
+                 //    align: 'center',
+                 //},
+                   //{
+                   //    field: 'dept.fullName',
+                   //    title: '所属部门',
+                   //    align: 'center',
+                   //},
+                   //  {
+                   //      field: 'job.jobName',
+                   //      title: '岗位',
+                   //      align: 'center',
+                   //  },
+
+                {
+                    field: 'createTime',
+                    title: '创建时间',
+                    align: 'center',
+                }
+                ,
+                {
+                    field: 'operate',
+                    title: '操作',
+                    align: 'center',
+                    events: "operateEvents",
+                    formatter: operateFormatter
+                }
+                ],
+                onLoadSuccess: function (data) {
+                    console.log(data);
+                },
+            })
+        };
+
+        function operateFormatter(value, row, index) {
+            return [
+            "<button type='button'  onclick=\"removeUser('" + row.id + "')\" class='RoleOfA btn btn-default  btn-sm' style='margin-right:5px;'>删除</button>",
+             "<button type='button'  onclick=\"showModal('" + row.id + "')\" class='RoleOfA btn btn-default  btn-sm' style='margin-right:5px;'>修改</button>",
+            ].join('');
+        }
+
+        function showModal(type) {
+
+            bindCommpany();
+
+            if (type == "add") {
+
+                $("#ddTitle").html("新增用户");
+                $("#addMark").val("add");
+            }
+            else {
+
+                $("#ddTitle").html("编辑用户");
+                $.ajax({
+                    url: baseUrl() + "userInfo/queryById",
+                    data: type,
+                    type: "post",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+                        console.log(data);
+                        if (data.success == true) {
+                            //$('#user-modal-table').modal('hide');
+                            $("#userid").val(data.data.id);
+                            $("#account").val(data.data.account);
+                            $("#password").val(data.data.password);
+                            $("#userName").val(data.data.userName);
+                            $("#gender").val(data.data.gender);
+                            $("#isAdmin").val(data.data.isAdmin);
+                            $("#mobilePhone").val(data.data.mobilePhone);
+                            $("#commpanyId").val(data.data.commpanyId);
+                            $("#deptId").val(data.data.deptId);
+                            $("#jobId").val(data.data.jobId);
+                            $("#isAllow").val(data.data.isAllow);
+                            $("#remark").val(data.data.remark);
+                        }
+                        else {
+                            layer.msg("添加失败");
+                        }
+                    }
+                });
+            }
+            $("#user-modal-table").modal({ backdrop: 'static', keyboard: false });
+        };
+
+        function addUser() {
+
+            var data = JSON.stringify({
+                "account": $("#account").val(),
+                "password": $("#password").val(),
+                "userName": $("#userName").val(),
+                "gender": $("#gender").val(),
+                "isAdmin": $("#isAdmin").val(),
+                "mobilePhone": $("#mobilePhone").val(),
+                "commpanyId": $("#commpanyId").val(),
+                "deptId": $("#deptId").val(),
+                "jobId": $("#jobId").val(),
+                "isAllow": $("#isAllow").val(),
+                "remark": $("#remark").val()
+            });
+            $.ajax({
+                url: baseUrl() + "userInfo/insert",
+                data: data,
+                type: "post",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+                    if (data.success == true) {
+                        $('#user-modal-table').modal('hide');
+                        layer.msg(data.msg);
+                        $("#refresh").trigger('click');
+                    }
+                    else {
+
+                        layer.msg("添加失败");
+                    }
+                    console.log(data);
+                }
+            });
+        };
+
+        function editUser() {
+
+            var data = JSON.stringify({
+                "id": $("#userid").val(),
+                "account": $("#account").val(),
+                "password": $("#password").val(),
+                "userName": $("#userName").val(),
+                "gender": $("#gender").val(),
+                "isAdmin": $("#isAdmin").val(),
+                "mobilePhone": $("#mobilePhone").val(),
+                "commpanyId": $("#commpanyId").val(),
+                "deptId": $("#deptId").val(),
+                "jobId": $("#jobId").val(),
+                "isAllow": $("#isAllow").val(),
+                "remark": $("#remark").val()
+            });
+            $.ajax({
+                url: baseUrl() + "userInfo/update",
+                data: data,
+                type: "post",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+                    if (data.success == true) {
+                        $('#user-modal-table').modal('hide');
+                        $("#userid").val("");
+                        layer.msg(data.msg);
+                        initTable();
+                    }
+                    else {
+
+                        layer.msg("编辑失败");
+                    }
+                    console.log(data);
+                }
+            });
+
+        };
+
+        function removeUser(id) {
+
+            layer.confirm('确定删除吗？', {
+                btn: ['确定', '取消'] //按钮
+            }, function () {
+                var data = "[" + id + "]";
+                $.ajax({
+                    url: baseUrl() + "userInfo/delete",
+                    data: data,
+                    type: "post",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+                        if (data.success == true) {
+                            $('#user-modal-table').modal('hide');
+                            layer.msg(data.msg);
+                            initTable();
+                        }
+                        else {
+
+                            layer.msg("删除失败");
+                        }
+                        console.log(data);
+                    }
+                });
+
+            }, function () {
+                layer.msg('好的');
+            });
+        }
+
+        function bindCommpany() {
+
+            var nulldata = "{}";
+            $.ajax({
+                url: baseUrl() + "orgInfo/queryList",
+                type: "post",
+                data: nulldata,
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (res) {
+
+                    if (res.success == true) {
+                        var _html = "";
+                        $.each(res.data.rows, function (i, j) {
+                            if (j.orgType == 1) {
+
+                                _html += "<option value='" + j.id + "'>" + j.fullName + "</option>";
+                            }
+                        })
+                        $("#commpanyId").append(_html);
+                    }
+                }
+            });
+        };
+
+        function bindDept(id) {
+
+            var data = JSON.stringify({
+
+                "id": id
+            });
+
+            $.ajax({
+                url: baseUrl() + "orgInfo/queryList",
+                type: "post",
+                data: data,
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (res) {
+
+                    if (res.success == true) {
+                        var _html = "";
+                        $.each(res.data.rows, function (i, j) {
+                            if (j.orgType == 2) {
+
+                                _html += "<option value='" + j.id + "'>" + j.fullName + "</option>";
+                            }
+                        })
+                        $("#deptId").append(_html);
+                    }
+                }
+            });
+        };
+
+        function bindJob(id) {
+
+            var data = JSON.stringify({
+
+                "orgId": id
+            });
+            $.ajax({
+                url: baseUrl() + "jobInfo/queryList",
+                type: "post",
+                data: data,
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (res) {
+
+                    console.log(res);
+
+                    if (res.success == true) {
+                        var _html = "";
+                        $.each(res.data, function (i, j) {
+
+                            _html += "<option value='" + j.id + "'>" + j.jobName + "</option>";
+
+                        })
+                        $("#jobId").append(_html);
+                    }
+                }
+            });
+        };
+
+
+    </script>
+</head>
+<body>
+    <input type="hidden" id="userid" />
+    <input type="hidden" id="addMark" />
+
+    <div class="btn-group">
+        <a id="NF-add" authorize="yes" class="btn btn-primary dropdown-text" onclick="showModal('add')"><i class="fa fa-plus"></i>新建用户</a>
+
+    </div>
+    <div class="btn-group">
+        &nbsp; &nbsp; &nbsp;
+        <a class="btn btn-primary" id="refresh" onclick="$.reload()"><span class="glyphicon glyphicon-refresh"></span></a>
+    </div>
+
+    <div class="gridPanel">
+        <table id="gridList"></table>
+        <div id="gridPager"></div>
+    </div>
+
+    <div id="user-modal-table" class="modal fade" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header no-padding">
+                    <div class="table-header">
+                        <span id="ddTitle"></span>
+                    </div>
+                </div>
+                <div class="modal-body no-padding" style="margin-top: 10px">
+
+                    <div style="padding-top: 20px; margin-right: 30px;">
+                        <table class="form">
+                            <tr>
+                                <th class="formTitle">账户</th>
+                                <td class="formValue">
+                                    <input id="account" name="account" type="text" class="form-control required" placeholder="请输入账户" />
+                                </td>
+                                <th class="formTitle">密码</th>
+                                <td class="formValue">
+                                    <input id="password" name="password" type="password" class="form-control required" placeholder="请输入密码" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">公司</th>
+                                <td class="formValue">
+                                    <select id="commpanyId" name="commpanyId" class="form-control required">
+                                        <option value="">==请选择==</option>
+                                    </select>
+                                </td>
+                                <th class="formTitle">部门</th>
+                                <td class="formValue">
+                                    <select id="deptId" name="deptId" class="form-control required">
+                                        <option value="">==请选择==</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">手机</th>
+                                <td class="formValue">
+                                    <input id="mobilePhone" name="mobilePhone" type="text" class="form-control" />
+                                </td>
+                                <th class="formTitle">岗位</th>
+                                <td class="formValue">
+                                    <select id="jobId" name="jobId" class="form-control required">
+                                        <option value="">==请选择==</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">姓名</th>
+                                <td class="formValue">
+                                    <input id="userName" name="userName" type="text" class="form-control required" placeholder="请输入姓名" />
+                                </td>
+                                <th class="formTitle">性别</th>
+                                <td class="formValue">
+                                    <select id="gender" name="gender" class="form-control required">
+                                        <option value="男">男</option>
+                                        <option value="女">女</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">类型</th>
+                                <td class="formValue">
+                                    <select id="isAdmin" name="isAdmin" class="form-control">
+                                        <option value="0">普通用户</option>
+                                        <option value="1">系统管理员</option>
+                                    </select>
+                                </td>
+                                <th class="formTitle">允许登录</th>
+                                <td class="formValue">
+                                    <select id="isAllow" name="isAllow" class="form-control">
+                                        <option value="0">是</option>
+                                        <option value="1">否</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle" valign="top" style="padding-top: 5px;">
+                                    备注
+                                </th>
+                                <td class="formValue" colspan="3">
+                                    <textarea id="remark" name="remark" class="form-control" style="height: 60px;"></textarea>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                </div>
+                <div class="modal-footer no-margin-top">
+                    <button class="btn btn-sm btn-default" data-dismiss="modal">
+                        <i class="icon-remove"></i>关闭
+                    </button>
+                    <button class="btn btn-sm btn-info pull-right" id="btnsaveuser">
+                        <i class="icon-save"></i>保存
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

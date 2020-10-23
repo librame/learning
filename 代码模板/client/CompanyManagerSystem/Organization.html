@@ -1,0 +1,427 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <link href="Content/css/framework-font.css" rel="stylesheet" />
+    <link href="Content/css/framework-theme.css" rel="stylesheet" />
+    <script src="Content/js/jquery/jquery-2.1.1.min.js"></script>
+    <script src="Content/js/jquery-ui/jquery-ui.min.js"></script>
+    <script src="Content/js/bootstrap/bootstrap.js"></script>
+    <link href="Content/js/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="Content/js/bootstrap-table/bootstrap-table.css" rel="stylesheet" />
+    <script src="Content/js/bootstrap-table-org/bootstrap-table.js"></script>
+    <script src="Content/js/bootstrap-table-org/bootstrap-treegrid.js"></script>
+    <script src="Content/js/bootstrap-table-org/bootstrap-table-zh-CN.js"></script>
+    <script src="Content/js/layout/jquery.layout.js"></script>
+    <script src="Content/js/wdtree/tree.js"></script>
+    <link href="Content/js/wdtree/tree.css" rel="stylesheet" />
+    <link href="Content/css/framework-ui.css" rel="stylesheet" />
+    <script src="Content/js/framework-ui.js"></script>
+    <link href="Content/js/select2/select2.min.css" rel="stylesheet" />
+    <script src="Content/js/select2/select2.min.js"></script>
+    <script src="Content/layer-v3.1.0/layer/layer.js"></script>
+    <script src="Content/js/base.js"></script>
+
+    <script type="text/javascript">
+
+        $(function () {
+
+            initTable();
+
+            bindCommpany();
+
+            $("#btnsaveuser").click(function () {
+
+                if ($("#addMark").val() == "add") {
+                    addOrg();
+                }
+                else {
+                    editOrg();
+                }
+            });
+
+            $('#user-modal-table').on('hide.bs.modal', function () {
+
+                $("#userid").val("");
+                $("#fullName").val("");
+                $("#enCode").val("");
+                $("#manager").val("");
+                $("#mobilePhone").val("");
+                $("#email").val("");
+                $("#address").val("");
+                $("#remark").val("");
+                $("#addMark").val("");
+            });
+        });
+
+        function initTable() {
+
+            var nulldata = "{}";
+            $('#gridList').bootstrapTable({
+
+                url: baseUrl() + "orgInfo/queryList",
+                method: "post",
+                singleSelect: true,//单行选择
+                clickToSelect: true,//点击行时自动选择
+                striped: true,//是否显示行间隔色
+                treeView: true,//是否显示树形视图
+                treeId: "id",//定义关键字段来标识树节点
+                treeField: "fullName",//定义树节点字段
+                treeParentId: "parentId", //定义父级ID字段
+                treeRootLevel: 1,//树根的级别
+                treeCollapseAll: true,//是否全部折叠，默认折叠
+                cascadeCheck: false,//是否层叠选中状态(选中父级，子级全部选中) true=层叠选中，需要singleSelect: false；false=不是层叠选中
+                uniqueId: "id", //每一行的唯一标识，一般为主键列
+                showRefresh: false,//是否显示刷新按钮
+                buttonsAlign: "left", //按钮的位置
+                queryParams: function (params) {
+
+                    return nulldata;
+                },
+                onLoadSuccess: function (res) {
+
+                    console.log(res);
+                },
+                columns:
+                [
+                  {
+                      field: 'ck',
+                      checkbox: true
+                  },
+                  {
+                      field: 'id',
+                      title: '编号',
+                      width: 50,
+                      visible: false
+                  },
+                     {
+                         field: 'fullName',
+                         title: '机构名称',
+                         width: 60
+                     },
+                  {
+                      field: 'enCode',
+                      title: '英文代码',
+                      visible: false
+                  },
+                    {
+                        field: 'orgType',
+                        title: '类型',
+                        width: 60,
+                        formatter: function (value) {
+                            if (value == "1") {
+                                return "公司";
+                            } else if (value == "2") {
+                                return "部门";
+                            } else if (value == "3") {
+                                return "小组";
+                            }
+                        }
+                    },
+                  {
+                      field: 'parentId',
+                      title: '父id',
+                      visible: false
+                  },
+                  {
+                      field: 'remark',
+                      title: '备注',
+                      width: 100
+                  }
+                  ,
+                  {
+                      field: 'action',
+                      title: '操作',
+                      width: 100,
+                      align: 'center',
+                      valign: 'middle',
+                      formatter: operateFormatter
+                  }
+                ]
+            });
+
+        }
+
+        function operateFormatter(value, row, index) {
+            return [
+            "<button type='button'  onclick=\"removeOrg('" + row.id + "')\" class='RoleOfA btn btn-default  btn-sm' style='margin-right:5px;'>删除</button>",
+             "<button type='button'  onclick=\"showModal('" + row.id + "')\" class='RoleOfA btn btn-default  btn-sm' style='margin-right:5px;'>修改</button>",
+            ].join('');
+        }
+
+        function bindCommpany() {
+
+            var nulldata = "{}";
+            $.ajax({
+                url: baseUrl() + "orgInfo/queryList",
+                type: "post",
+                data: nulldata,
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (res) {
+
+                    if (res.success == true) {
+                        var _html = "";
+
+                        $.each(res.data.rows, function (i, j) {
+                            if (j.orgType != 3) {
+
+                                _html += "<option value='" + j.id + "'>" + j.fullName + "</option>";
+                            }
+                        })
+                        $("#parentId").append(_html);
+                    }
+                }
+            });
+        };
+
+        function showModal(type) {
+
+            if (type == "add") {
+
+                $("#ddTitle").html("新增机构");
+                $("#addMark").val("add");
+            }
+            else {
+
+                $("#ddTitle").html("编辑机构");
+                $.ajax({
+                    url: baseUrl() + "orgInfo/queryById",
+                    data: type,
+                    type: "post",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+
+                        if (data.success == true) {
+                            //$('#user-modal-table').modal('hide');
+                            $("#userid").val(data.data.id);
+                            $("#parentId").val(data.data.parentId);
+                            $("#orgType").val(data.data.orgType);
+                            $("#fullName").val(data.data.fullName);
+                            $("#enCode").val(data.data.enCode);
+                            $("#manager").val(data.data.manager);
+                            $("#mobilePhone").val(data.data.mobilePhone);
+                            $("#email").val(data.data.email);
+                            $("#address").val(data.data.address);
+                            $("#remark").val(data.data.remark);
+                        }
+                        else {
+                            layer.msg("添加失败");
+                        }
+                    }
+                });
+            }
+            $("#user-modal-table").modal({ backdrop: 'static', keyboard: false });
+        };
+
+        function addOrg() {
+            debugger;
+            var data = JSON.stringify({
+
+                "parentId": $("#parentId").val(),
+                "orgType": $("#orgType").val(),
+                "fullName": $("#fullName").val(),
+                "enCode": $("#enCode").val(),
+                "manager": $("#manager").val(),
+                "mobilePhone": $("#mobilePhone").val(),
+                "email": $("#email").val(),
+                "address": $("#address").val(),
+                "remark": $("#remark").val()
+            });
+            $.ajax({
+                url: baseUrl() + "orgInfo/insert",
+                data: data,
+                type: "post",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+                    if (data.success == true) {
+                        $('#user-modal-table').modal('hide');
+                        layer.msg(data.msg);
+                        $("#refresh").trigger('click');
+                    }
+                    else {
+
+                        layer.msg("添加失败");
+                    }
+                }
+            });
+        };
+
+        function editOrg() {
+
+            var data = JSON.stringify({
+                "id": $("#userid").val(),
+                "parentId": $("#parentId").val(),
+                "orgType": $("#orgType").val(),
+                "fullName": $("#fullName").val(),
+                "enCode": $("#enCode").val(),
+                "manager": $("#manager").val(),
+                "mobilePhone": $("#mobilePhone").val(),
+                "email": $("#email").val(),
+                "address": $("#address").val(),
+                "remark": $("#remark").val()
+            });
+            $.ajax({
+                url: baseUrl()+"orgInfo/update",
+                data: data,
+                type: "post",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+                    if (data.success == true) {
+                        $('#user-modal-table').modal('hide');
+                        layer.msg(data.msg);
+                        $("#refresh").trigger('click');
+                    }
+                    else {
+
+                        layer.msg("编辑失败");
+                    }
+                }
+            });
+
+        };
+
+        function removeOrg(id) {
+
+            layer.confirm('确定删除吗？', {
+                btn: ['确定', '取消'] //按钮
+            }, function () {
+                var data = "[" + id + "]";
+                $.ajax({
+                    url: baseUrl() + "orgInfo/delete",
+                    data: data,
+                    type: "post",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+                        if (data.success == true) {
+                            $('#user-modal-table').modal('hide');
+                            layer.msg(data.msg);
+                            $("#refresh").trigger('click');
+                        }
+                        else {
+
+                            layer.msg("删除失败");
+                        }
+                    }
+                });
+
+            }, function () {
+                layer.msg('好的');
+            });
+        };
+
+
+    </script>
+</head>
+<body>
+    <input type="hidden" id="userid" />
+    <input type="hidden" id="addMark" />
+
+
+    <div class="btn-group">
+        <a id="NF-add" authorize="yes" class="btn btn-primary dropdown-text" onclick="showModal('add')"><i class="fa fa-plus"></i>添加机构</a>
+
+    </div>
+    <div class="btn-group">
+        &nbsp; &nbsp; &nbsp;
+        <a id="refresh" class="btn btn-primary" onclick="$.reload()"><span class="glyphicon glyphicon-refresh"></span></a>
+    </div>
+    <div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+        <div class="ui-layout-west">
+            <div id="itemTree"></div>
+        </div>
+        <div class="ui-layout-center">
+            <div class="gridPanel">
+                <table id="gridList"></table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<div id="user-modal-table" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header no-padding">
+                <div class="table-header">
+                    <span id="ddTitle"></span>
+                </div>
+            </div>
+            <div class="modal-body no-padding" style="margin-top: 10px">
+
+                <div style="padding-top: 20px; margin-right: 30px;">
+                    <table class="form">
+                        <tr>
+                            <th class="formTitle">归属</th>
+                            <td class="formValue">
+                                <select id="parentId" name="commpanyId" class="form-control required">
+                                    <option value="0">请选择</option>
+                                </select>
+                            </td>
+                            <th class="formTitle">机构类型</th>
+                            <td class="formValue">
+                                <select id="orgType" name="orgType" class="form-control required">
+                                    <option value="1">公司</option>
+                                    <option value="2">部门</option>
+                                    <option value="3">小组</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="formTitle">机构名称</th>
+                            <td class="formValue">
+                                <input id="fullName" name="fullName" type="text" class="form-control required" placeholder="请输入机构名称" />
+                            </td>
+                            <th class="formTitle">机构编号</th>
+                            <td class="formValue">
+                                <input id="enCode" name="enCode" type="text" class="form-control required" placeholder="请输入机构编号" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="formTitle">负责人</th>
+                            <td class="formValue">
+                                <input id="manager" name="manager" type="text" class="form-control required" placeholder="请输入负责人名称" />
+                            </td>
+                            <th class="formTitle">联系电话</th>
+                            <td class="formValue">
+                                <input id="mobilePhone" name="mobilePhone" type="text" class="form-control required" placeholder="请输入联系电话" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="formTitle">邮箱</th>
+                            <td class="formValue">
+                                <input id="email" name="email" type="text" class="form-control required" placeholder="请输入机构邮箱" />
+                            </td>
+                            <th class="formTitle">联系地址</th>
+                            <td class="formValue">
+                                <input id="address" name="address" type="text" class="form-control required" placeholder="请输入机构地址" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="formTitle" valign="top" style="padding-top: 5px;">
+                                备注
+                            </th>
+                            <td class="formValue" colspan="3">
+                                <textarea id="remark" name="remark" class="form-control" style="height: 60px;"></textarea>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+            </div>
+            <div class="modal-footer no-margin-top">
+                <button class="btn btn-sm btn-default" data-dismiss="modal">
+                    <i class="icon-remove"></i>关闭
+                </button>
+                <button class="btn btn-sm btn-info pull-right" id="btnsaveuser">
+                    <i class="icon-save"></i>保存
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
