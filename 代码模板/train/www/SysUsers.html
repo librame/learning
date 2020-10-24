@@ -1,0 +1,102 @@
+﻿<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>无标题文档</title>
+	<link href="Content/css/framework-font.css" rel="stylesheet" />
+	<script src="Content/js/jquery/jquery-2.1.1.min.js"></script>
+	<script src="Content/js/bootstrap/bootstrap.js"></script>
+	<link href="Content/js/bootstrap/bootstrap.min.css" rel="stylesheet" />
+	<script src="Content/js/dialog/dialog.js"></script>
+	<link href="Content/css/framework-theme.css" rel="stylesheet" />
+	<script src="Content/js/framework-ui.js"></script>
+	<script src="Content/js/framework-clientdata.js"></script>
+	<script src="Content/js/base.js"></script>
+	<script>
+        function resetUser(id) {
+            $.get(baseUrl() + "api/userInnfo/" + id, function () {
+                $('#user-modal-table').modal('hide');
+                alert("重置登录密码成功！");
+                initTable();
+                console.log(data);
+            });
+        };
+
+        function deleteUser(id) {
+            $.ajax({
+                type: "delete",
+                url: baseUrl() + "api/userInnfo/",
+                data: { id: id },
+                datetype: "json",
+                success: function () {
+                    loadUser();
+                }
+            });
+        };
+
+        function loadUser() {
+            $.get(baseUrl() + "api/userInnfo", function (result) {
+                var users = eval(result);//解析
+                $.each(users, function (i, user) {
+                    $("#tab").append("<tr><td>" + user.UserName + "</td><td>" + user.CreatedTime + "</td><td><button onclick='resetUser(" + user.Id + ")'>重置</button><button onclick='deleteUser(" + user.Id + ")'>删除</button></td></tr>");
+                })
+            });
+        };
+        loadUser();
+	</script>
+</head>
+
+<body>
+	<div>
+		<table id="tab">
+			<tr>
+				<td>账号</td>
+				<td>创建时间</td>
+				<td>操作</td>
+			</tr>
+		</table>
+	</div>
+	<script type="text/javascript">
+			
+			
+			//重置按钮
+            function reset(id) {
+            //layer.confirm('确定重置登录密码吗？', {
+            //    btn: ['确定', '取消'] //按钮
+            //}, function () {
+                //var data = "[" + id + "]";
+                    $.get(baseUrl() + "api/userInnfo/"+id,function(){
+						$('#user-modal-table').modal('hide');
+						alert("重置登录密码成功！");
+                            initTable();
+                        console.log(data);
+				});
+
+            //}, function () {
+            //    layer.msg('好的');
+            //});
+        };
+			//删除
+            function remove(id){
+				$.ajax({
+					type:"delete",
+                    url: baseUrl() + "api/userInnfo/",
+					data:id,
+					datetype:"json",
+					success: function () {
+                        loadUser()
+					}
+				})
+			};
+  //          function loadUser() {
+  //              $.get(baseUrl() + "api/userInnfo", function (result) {
+  //                  var users = eval(result);//解析
+  //                  $.each(users, function (i, user) {
+  //                      $("#tab").append("<tr><td>" + user.userName + "</td><td>" + user.CreatedTime + "</td><td><button class='btn-reset'>重置</button><button class='btn-delete'>删除</button></td></tr>");
+  //                  })
+  //              });
+  //          };
+		//loadUser();
+	</script>
+</body>
+</html>

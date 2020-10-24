@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>无标题文档</title>
+	<script src="Content/js/jquery.min.js"></script>
+</head>
+
+<body>
+	<div>
+		<table id="tab">
+			<tr>
+				<td>账号</td>
+				<td>创建时间</td>
+				<td>操作</td>
+			</tr>
+		</table>
+	</div>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			
+			function loadUser(){
+				$.get(baseUrl() + "api/Users",function(result){
+				var users=eval(result);//解析
+				$.each(users,function(i,user){
+					$.each(users,function(i,user){
+						$("#tab").append("<tr><td>"+user.userName+"</td><td>"+user.CreatedTime+"</td><td><button onclick='reset("+user.Id+")'>重置</button><button onclick='remove("+user.Id+")'>删除</button></td></tr>");
+					});
+				});
+			});
+			};
+			loadUser();
+			//重置按钮
+			function resetUser(id) {
+            layer.confirm('确定重置登录密码吗？', {
+                btn: ['确定', '取消'] //按钮
+            }, function () {
+                //var data = "[" + id + "]";
+				$.get(baseUrl() + "api/Users/"+id,function(){
+					$('#user-modal-table').modal('hide');
+                            layer.msg("重置登录密码成功！");
+                            initTable();
+                        console.log(data);
+				});
+
+            }, function () {
+                layer.msg('好的');
+            });
+        };
+			//删除
+			function reMoveUser(id){
+				$.ajax({
+					type:"delete",
+					url:baseUrl() + "api/Users/",
+					data:id,
+					datetype:"json",
+					success:function(){
+						loadUser();
+					};
+				})
+			}
+		});
+	</script>
+</body>
+</html>
