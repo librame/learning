@@ -154,3 +154,117 @@ OO
 系统主要采用前后端分离，前端使用.Net搭建的Web服务器，后端使用webapi搭建的的接口服务器。用户通过浏览器访问到Web应用服务，web服务器将Web服务请求转发到接口服务器，并调用接口服务器，接口服务请求数据服务，从数据库中获取数据，如果存在数据，直接将数据返回给Web应用服务，在返回给用户，如果数据不存在，则去查询sqlserver数据库，将查询到的数据返回给Web应用服务，再返回给用户。
 
 
+1	用户模块
+1.1	用户登录
+1.1.1	请求协议
+字段名称	变量名	数据类型	默认值	值域	说明
+接口编码
+/userInfo/login
+输入参数
+UserInfo
+登录账号	account	String		M	必填
+登录密码	password	String		M	必填
+请求方式
+POST
+请求地址（测试环境）
+http://129.204.107.189:8888/userInfo/login
+请求示例
+{
+	"account":"admin",
+	"password":"123456"
+}
+
+1.1.2	返回协议
+字段名称	变量名	数据类型	默认值	值域	说明
+输出参数
+调用是否成功	isSuccess	Boolean		M	调用服务本身是否成功，不表示业务成功失败类型
+返回结果编码	code	String(8)		O	正确返回“0000”
+返回信息	msg	String(128)		0	
+参数对象	data	*Json		0	响应参数Json格式
+业务参数
+业务参数字符串，详见：各业务接口定义。
+返回示例
+{
+    "data": {
+        "id": 1,
+        "account": "12313213",
+        "userName": "阿达",
+        "password": "123456",
+        "isAdmin": 1,
+        "gender": null,
+        "mobilePhone": null,
+        "commpanyId": null,
+        "deptId": null,
+        "jobId": null,
+        "isAllow": null,
+        "remark": null,
+        "createTime": null,
+        "isDelete": 0
+    },
+    "code": "0000",
+    "msg": "登录成功",
+    "success": true
+}
+
+1.2	用户添加
+1.2.1	请求协议
+字段名称	变量名	数据类型	默认值	值域	说明
+接口编码
+/userInfo/insert
+输入参数
+UserInfo
+登录账号	account	String		M	必填
+登录密码	password	String		M	必填
+请求方式
+POST
+请求地址（测试环境）
+http://129.204.107.189:8888/userInfo/insert
+请求示例
+{
+	"account":"admin",
+	"password":"123456",
+	"userName":"系统管理员",
+	"gender":"男",
+	"isAdmin":1,
+	"mobilePhone":"10086",
+	"commpanyId":1,
+	"deptId":1,
+	"jobId":1,
+	"isAllow":0,
+	"remark":"系统管理员"
+}
+
+1.2.2	返回协议
+字段名称	变量名	数据类型	默认值	值域	说明
+输出参数
+调用是否成功	isSuccess	Boolean		M	调用服务本身是否成功，不表示业务成功失败类型
+返回结果编码	code	String(8)		O	正确返回“0000”
+返回信息	msg	String(128)		0	
+参数对象	data	*Json		0	响应参数Json格式
+业务参数
+业务参数字符串，详见：各业务接口定义。
+返回示例
+{
+    "data": {
+        "id": 2,
+        "account": "admin",
+        "userName": "系统管理员",
+        "password": "123456",
+        "isAdmin": 1,
+        "gender": "男",
+        "mobilePhone": "10086",
+        "commpanyId": 1,
+        "deptId": 1,
+        "jobId": 1,
+        "isAllow": 0,
+        "remark": "系统管理员",
+        "createTime": 1592116622902,
+        "isDelete": 0,
+        "commpany": null,
+        "dept": null,
+        "job": null
+    },
+    "code": "0000",
+    "msg": "保存成功",
+    "success": true
+}
